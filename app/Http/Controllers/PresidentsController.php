@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-class Presidents extends Controller
+class PresidentsController extends Controller
 {
     public function index(): string
     {

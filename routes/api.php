@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\PresidentsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
 
+Route::get('/presidents', [PresidentsController::class, 'index'])
+    ->name('presidents.index');
