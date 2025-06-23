@@ -8,3 +8,4 @@ Route::get('/health', function () {
 });
 
 Route::get('/presidents/{date}', [PresidentsController::class, 'getPresidentByDate']);
+Route::get('/random', [PresidentsController::class, 'random']);

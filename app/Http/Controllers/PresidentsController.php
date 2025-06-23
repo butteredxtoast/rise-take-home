@@ -40,6 +40,25 @@ class PresidentsController extends Controller
         }
     }
 
+    /**
+     * Returns some fun stats, including...
+     * most common astrological (sun) sign
+     * most common birth day of week (Mon-Sun)
+     * most common death day of week (Mon-Sun)
+     *
+     * @param PresidentsService $presidentsService
+     * @return JsonResponse
+     */
+    public function random(PresidentsService $presidentsService): JsonResponse
+    {
+        try {
+            $stats = $presidentsService->getFunStats();
+            return response()->json($stats);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     private function validationRules(): array
     {
         return [
