@@ -1,62 +1,45 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Rise Take Home Assignment
+## This was a blast! Here's a rough breakdown of the steps I took to complete the assignment:
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+###  Thought Process:
+- first minute was spent deciding what music to put on
+- With the freedom to choose whatever tech I want, I opted for a Laravel application
+    - I considered using Python, but this assignment is time-bound and I wanted to use a framework I was already familiar with
+    - I opted for an extremely paired down Laravel app with no front end configuration
+    - To manage this app, I'm using Laravel Sail locally, which is a Docker-based development environment
+- On project setup, I established a basic `/health` endpoint to ensure the app was running
+    - additionally, I created a collection in Postman to test the API
+- My BigQuery configuration is also very barebones. It's helpful that I don't need to modify or do anything special with this data other than retrieve it
+    - I spent a few minutes reading the documentation for the BigQuery API to ensure I was using it correctly
+- Hit a snag with CLoud Run configuration and ended up consulting AI (limited online documentation for Laravel apps)
+    - Revealed that I needed to create a Procfile to run the app in Cloud Run. Basically CLoud Run needs to know to run `php artisan serve --host=0.0.0.0 --port=$PORT` to start my app
+- Another snag! My normal project setup flow caused things to be more complicated than they needed to be! Working in a containerized environment, I overlooked needing to mount auth credentials into the container and setting an env var.
+- Spent longer on the Cloud Run configuration than I expected, but it was a good learning experience
+- - Now that my application is running in the cloud, I was able to test the `/health` endpoint and confirm that it was working
 
-## About Laravel
+- Rockin & rollin' on API design now. Went with the iterative approach of building a simple request to return a single row via a basic `Select *` query
+- Confirming that I can query BigQuery felt like a major milestone - I can really start developing now
+- Planning to focus on happy path first, but did introduce a simple request validator
+- first time I've worked with a non-standard column name ("Term Start")
+- Fun "gotcha" was realizing that all of the columns that represent dates in the data are actually strings, so I had to convert them to Date (Carbon) objects
+- One of Grover Cleveland's terms was input incorrectly // that set me back a few minutes getting that corrected
+- Once I fixed the data issue and had my time conversion taken care of, I was able to get the first endpoint working
+- Controller was looking a little bloated, so I extracted the query logic into a service class
+- Now the _fun_ part - something random! This was a neat challenge in that I didn't want to import any external libraries, so I had to get creative with the data available
+- Went with some most common/least common logic
+- Little more abstraction after that endpoint was set
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## A Note on AI:
+- After getting stuck on Cloud Run configuration & BigQuery auth, I consulted AI with some specific questions to help me get unstuck
+- I left co-pilot auto-complete on for the duration of the project to assist with some syntax as needed
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Testing:
+I didn't get a chance to write any local tests (the scope of this app is also very basic)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Date Endpoint:
+- Postman: `https://rise-take-home-1068340888922.us-west1.run.app/api/presidents/{mm-dd-yyyy}`
+- cURL: `curl https://rise-take-home-1068340888922.us-west1.run.app/api/presidents/05-28-1991`
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# rise-take-home
+Fun Endpoint:
+- Postman: `https://rise-take-home-1068340888922.us-west1.run.app/api/random`
+- cURL: `curl -v https://rise-take-home-1068340888922.us-west1.run.app/api/random`
