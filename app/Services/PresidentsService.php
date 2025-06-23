@@ -20,10 +20,7 @@ class PresidentsService
 
     public function findPresidentByDate(Carbon $date): ?array
     {
-        $query = $this->bigQuery->query(
-            'SELECT * FROM `' . self::TABLE_NAME . '`'
-        );
-        $results = $this->bigQuery->runQuery($query);
+        $results = $this->getAllPresidents();
 
         foreach ($results as $row) {
             $termStart = Carbon::createFromFormat('F j, Y', $row['Term Start']);
@@ -59,10 +56,7 @@ class PresidentsService
      */
     public function getFunStats(): array
     {
-        $query = $this->bigQuery->query(
-            'SELECT * FROM `' . self::TABLE_NAME . '`'
-        );
-        $results = $this->bigQuery->runQuery($query);
+        $results = $this->getAllPresidents();
 
         $signs = [];
         $birthDays = [];
@@ -116,6 +110,14 @@ class PresidentsService
             'Most Common Death Day' => $mostCommonDeathDay,
             'Least Common Death Day' => $leastCommonDeathDay
         ];
+    }
+
+    private function getAllPresidents(): iterable
+    {
+        $query = $this->bigQuery->query(
+            'SELECT * FROM `' . self::TABLE_NAME . '`'
+        );
+        return $this->bigQuery->runQuery($query);
     }
 
     private function getAstrologicalSign(Carbon $date): string
