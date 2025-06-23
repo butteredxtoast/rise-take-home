@@ -7,5 +7,4 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
 
-Route::get('/presidents', [PresidentsController::class, 'index'])
-    ->name('presidents.index');
+Route::get('/presidents/{date}', [PresidentsController::class, 'getPresidentByDate']);
