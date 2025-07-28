@@ -1,0 +1,101 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  CLOUD_RUN_SERVICE: ${{ secrets.CLOUD_RUN_SERVICE }}
+  CLOUD_RUN_REGION: us-west1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+        service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Install Dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: Copy .env for production
+      run: |
+        cp .env.example .env
+        echo "APP_ENV=production" >> .env
+        echo "APP_DEBUG=false" >> .env
+        echo "BIGQUERY_PROJECT_ID=${{ secrets.BIGQUERY_PROJECT_ID || secrets.GCP_PROJECT_ID }}" >> .env
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Run tests
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+        php artisan test
+
+    - name: Build and Deploy to Cloud Run
+      run: |
+        gcloud run deploy ${{ env.CLOUD_RUN_SERVICE }} \
+          --source . \
+          --platform managed \
+          --region ${{ env.CLOUD_RUN_REGION }} \
+          --project ${{ env.GCP_PROJECT_ID }} \
+          --allow-unauthenticated \
+          --set-env-vars="APP_ENV=production,APP_DEBUG=false,BIGQUERY_PROJECT_ID=${{ secrets.BIGQUERY_PROJECT_ID || secrets.GCP_PROJECT_ID }}"
+
+    - name: Get service URL
+      id: get-url
+      run: |
+        SERVICE_URL=$(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE }} --region=${{ env.CLOUD_RUN_REGION }} --format="value(status.url)")
+        echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+        echo "Service deployed to: $SERVICE_URL"
+
+    - name: Test deployed service
+      run: |
+        # Test health endpoint
+        curl -f "${{ steps.get-url.outputs.SERVICE_URL }}/api/health" || exit 1
+        
+        # Test BigQuery health check
+        curl -f "${{ steps.get-url.outputs.SERVICE_URL }}/api/bigquery-health" || exit 1
+        
+        # Test presidents endpoint with sample date
+        curl -f "${{ steps.get-url.outputs.SERVICE_URL }}/api/presidents/01-20-2009" || exit 1
+        
+        # Test random endpoint
+        curl -f "${{ steps.get-url.outputs.SERVICE_URL }}/api/random" || exit 1
+
+    - name: Output deployment info
+      run: |
+        echo "✅ Deployment successful!"
+        echo "🌐 Service URL: ${{ steps.get-url.outputs.SERVICE_URL }}"
+        echo "🔍 Test the following endpoints:"
+        echo "   Health: ${{ steps.get-url.outputs.SERVICE_URL }}/api/health"
+        echo "   BigQuery Health: ${{ steps.get-url.outputs.SERVICE_URL }}/api/bigquery-health"
+        echo "   Presidents: ${{ steps.get-url.outputs.SERVICE_URL }}/api/presidents/01-20-2009"
+        echo "   Random Stats: ${{ steps.get-url.outputs.SERVICE_URL }}/api/random"

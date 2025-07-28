@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'bigquery' => [
+        'project_id' => env('BIGQUERY_PROJECT_ID', 'rise-take-home-463523'),
+        'dataset' => env('BIGQUERY_DATASET', 'us_presidents'),
+        'table' => env('BIGQUERY_TABLE', 'presidents'),
+    ],
+
 ];

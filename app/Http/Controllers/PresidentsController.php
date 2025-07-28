@@ -41,6 +41,25 @@ class PresidentsController extends Controller
     }
 
     /**
+     * Health check endpoint that verifies BigQuery connectivity
+     * @param PresidentsService $presidentsService
+     * @return JsonResponse
+     */
+    public function bigqueryHealth(PresidentsService $presidentsService): JsonResponse
+    {
+        try {
+            $health = $presidentsService->healthCheck();
+            return response()->json($health);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'BigQuery connection failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Returns some fun stats, including...
      * most common astrological (sun) sign
      * most common birth day of week (Mon-Sun)

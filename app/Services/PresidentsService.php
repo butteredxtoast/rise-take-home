@@ -10,11 +10,18 @@ class PresidentsService
     const PROJECT_ID = 'rise-take-home-463523';
     const TABLE_NAME = 'rise-take-home-463523.us_presidents.presidents';
     private BigQueryClient $bigQuery;
+    private string $projectId;
+    private string $tableName;
 
     public function __construct()
     {
+        $this->projectId = config('services.bigquery.project_id', self::PROJECT_ID);
+        $dataset = config('services.bigquery.dataset', 'us_presidents');
+        $table = config('services.bigquery.table', 'presidents');
+        $this->tableName = "{$this->projectId}.{$dataset}.{$table}";
+        
         $this->bigQuery = new BigQueryClient([
-            'projectId' => config('services.bigquery.project_id', self::PROJECT_ID)
+            'projectId' => $this->projectId
         ]);
     }
 
@@ -112,10 +119,42 @@ class PresidentsService
         ];
     }
 
+    /**
+     * Health check method to verify BigQuery connectivity
+     * @return array
+     */
+    public function healthCheck(): array
+    {
+        try {
+            // Simple query to test connectivity
+            $query = $this->bigQuery->query(
+                'SELECT COUNT(*) as total FROM `' . $this->tableName . '` LIMIT 1'
+            );
+            $results = $this->bigQuery->runQuery($query);
+            
+            $total = 0;
+            foreach ($results as $row) {
+                $total = $row['total'];
+                break;
+            }
+            
+            return [
+                'status' => 'ok',
+                'bigquery_connected' => true,
+                'project_id' => $this->projectId,
+                'table' => $this->tableName,
+                'president_count' => $total,
+                'timestamp' => now()->toISOString()
+            ];
+        } catch (\Exception $e) {
+            throw new \Exception('BigQuery health check failed: ' . $e->getMessage());
+        }
+    }
+
     private function getAllPresidents(): iterable
     {
         $query = $this->bigQuery->query(
-            'SELECT * FROM `' . self::TABLE_NAME . '`'
+            'SELECT * FROM `' . $this->tableName . '`'
         );
         return $this->bigQuery->runQuery($query);
     }
